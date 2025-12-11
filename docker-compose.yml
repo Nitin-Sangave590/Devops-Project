@@ -2,21 +2,39 @@ version: '3'
 
 services:
   blue:
-    build: ./Blue-Code
+    build: ./blue-code
     container_name: blue_app
     ports:
       - "8081:80"
+    depends_on:
+      - mysql
 
   green:
-    build: ./Green-code
+    build: ./green-code
     container_name: green_app
     ports:
       - "8082:80"
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: stockdb
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
 
   nginx:
     image: nginx:latest
-    container_name: reverse_proxy
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+    container_name: nginx_proxy
     ports:
       - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - blue
+      - green
